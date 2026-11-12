@@ -1,0 +1,17 @@
+{
+  "name": "سكينة | مصحف ورش للتحفيظ",
+  "short_name": "سكينة",
+  "description": "تحفيظ القرآن الكريم برواية ورش عن نافع بتلاوة الشيخ إبراهيم الدوسري",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f3ee",
+  "theme_color": "#125b4d",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

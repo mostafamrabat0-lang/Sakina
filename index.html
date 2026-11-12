@@ -12,6 +12,12 @@
   <meta property="og:title" content="سكينة | تحفيظ القرآن برواية ورش">
   <meta property="og:description" content="مصحف ورش عن نافع للتحفيظ والمراجعة، بتلاوة الشيخ إبراهيم الدوسري آية بآية. مجاني وبدون إعلانات.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23125b4d'/%3E%3Cpath d='M14 46c8-4 13-4 18 0 5-4 10-4 18 0V18c-8-4-13-4-18 0-5-4-10-4-18 0z' fill='none' stroke='%23f5ecd9' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M32 18v28' stroke='%23f5ecd9' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="سكينة">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>سكينة | تحفيظ القرآن برواية ورش</title>
   <style>
     @font-face {
@@ -1128,5 +1134,10 @@
     init();
   })();
   </script>
+<script>
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+  }
+</script>
 </body>
 </html>
