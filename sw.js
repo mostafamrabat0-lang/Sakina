@@ -1,5 +1,5 @@
 // سكينة — يحفظ التطبيق والخط ونص المصحف في الهاتف ليعمل بدون إنترنت
-const VERSION = "sakina-v3";
+const VERSION = "sakina-v4";
 const SHELL = ["./", "./index.html", "./manifest.json"];
 const ICONS = ["./IMG_2261.png", "./IMG_2262.png", "./IMG_2263.png"];
 const DATA = [
@@ -34,7 +34,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin === self.location.origin) {
     event.respondWith((async () => {
       try {
-        const res = await fetch(req);
+        const res = await fetch(req, { cache: "no-store" });
         if (res.ok) (await caches.open(VERSION)).put(req, res.clone());
         return res;
       } catch (e) {
