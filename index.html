@@ -376,6 +376,10 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
+    .dl-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-block: 10px 4px; }
+    .dl-btn { border: 1px solid var(--primary); background: var(--primary-soft); color: var(--primary); border-radius: 999px; padding: 8px 16px; font-size: 14px; cursor: pointer; }
+    .dl-btn.done { border-color: var(--success); color: var(--success); background: transparent; }
+    .dl-del { border: 0; background: none; color: var(--muted); font-size: 12px; text-decoration: underline; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -467,7 +471,7 @@
             <div class="field"><label for="ayahLoop">تكرار الآية</label><select id="ayahLoop"><option value="1">١ مرة</option><option value="3" selected>٣ مرات</option><option value="5">٥ مرات</option><option value="7">٧ مرات</option><option value="10">١٠ مرات</option></select></div>
             <div class="field"><label for="playbackSpeed">سرعة التلاوة</label><select id="playbackSpeed"><option value="0.75">٠٫٧٥×</option><option value="1" selected>١×</option><option value="1.25">١٫٢٥×</option></select></div>
           </div>
-          <p class="network-note"><svg class="icon" aria-hidden="true"><use href="#i-wifi"></use></svg>النصوص المدمجة تعمل دون اتصال؛ أما التلاوة وجلب السور غير المدمجة فيحتاجان إلى الإنترنت.</p>
+          <p class="network-note"><svg class="icon" aria-hidden="true"><use href="#i-wifi"></use></svg>النص يعمل دون اتصال بعد فتحه أول مرة. وللاستماع دون اتصال، اضغط «تحميل تلاوة السورة» أعلى المصحف وأنت متصل بالإنترنت.</p>
         </section>
 
         <section class="panel" aria-labelledby="memoryTitle">
@@ -504,7 +508,7 @@
         </section>
 
         <article class="panel mushaf-sheet" aria-labelledby="mushafTitle">
-          <header class="mushaf-head"><div class="surah-kicker">الْمُصْحَفُ الشَّرِيفُ · رِوَايَةُ وَرْشٍ</div><h2 id="mushafTitle">سورة الفاتحة</h2><span class="source-badge" id="sourceBadge">نص مدمج</span><div class="basmala" id="basmala">بِسْمِ اِ۬للَّهِ اِ۬لرَّحْمَٰنِ اِ۬لرَّحِيمِ</div></header>
+          <header class="mushaf-head"><div class="surah-kicker">الْمُصْحَفُ الشَّرِيفُ · رِوَايَةُ وَرْشٍ</div><h2 id="mushafTitle">سورة الفاتحة</h2><span class="source-badge" id="sourceBadge">نص مدمج</span><div class="dl-wrap"><button type="button" class="dl-btn" id="downloadAudio">⬇ تحميل تلاوة السورة للاستماع دون اتصال</button><button type="button" class="dl-del" id="deleteAudio" hidden>حذف التلاوة المحفوظة</button></div><div class="basmala" id="basmala">بِسْمِ اِ۬للَّهِ اِ۬لرَّحْمَٰنِ اِ۬لرَّحِيمِ</div></header>
           <div class="rule-legend" id="ruleLegend" hidden aria-label="دليل ألوان الأحكام"></div>
           <div id="loadingState" class="loading-state" hidden><div class="spinner"></div><p>جارٍ جلب السورة برسم ورش…</p></div>
           <div id="loadError" class="empty-state" hidden><svg class="icon" aria-hidden="true" style="width:32px;height:32px"><use href="#i-wifi"></use></svg><h3>تعذّر جلب السورة</h3><p>تحقق من الاتصال ثم أعد المحاولة. السور المعلّمة بـ«مدمجة» تعمل دون شبكة.</p><button class="primary-btn" id="retryLoad" type="button">إعادة المحاولة</button></div>
@@ -725,7 +729,7 @@
       $("#previousSurah").addEventListener("click", () => loadSurah(state.surah - 1));
       $("#nextSurah").addEventListener("click", () => loadSurah(state.surah + 1));
       $("#retryLoad").addEventListener("click", () => { state.textPromise = null; loadSurah(state.surah); });
-      $("#reciterSelect").addEventListener("change", event => { state.reciter = event.target.value; stopAudio(true); saveSettings(); toast(`تم اختيار القارئ ${RECITERS[state.reciter].name}.`); });
+      $("#reciterSelect").addEventListener("change", event => { state.reciter = event.target.value; stopAudio(true); saveSettings(); refreshDownloadButton(); toast(`تم اختيار القارئ ${RECITERS[state.reciter].name}.`); });
       $("#playbackSpeed").addEventListener("change", event => { state.speed = Number(event.target.value); audio.playbackRate = state.speed; saveSettings(); });
       $$("[data-recall]").forEach(button => button.addEventListener("click", () => setRecall(button.dataset.recall)));
       $("#checkCloze").addEventListener("click", checkCloze);
@@ -880,6 +884,7 @@
       if (!state.loaded) return;
       const surah = currentSurah(); $("#mushafTitle").textContent = `سورة ${surah.name}`;
       $("#sourceBadge").textContent = EMBEDDED_IDS.has(state.surah) ? "نص مدمج · يعمل دون اتصال" : Object.keys(state.cache).includes(String(state.surah)) ? "محفوظ للقراءة دون اتصال" : "نص برسم ورش";
+      refreshDownloadButton();
       const basmala = $("#basmala"); basmala.hidden = state.surah === 9; basmala.textContent = BASMALA;
       $("#ruleLegend").hidden = !state.colorRules;
       const visible = visibleAyahs();
@@ -977,10 +982,60 @@
         if (error.name !== "AbortError" && token === state.playToken && state.active) await onAudioError();
       }
     }
+    const AUDIO_CACHE = "sakina-audio";
+    function surahAudioUrls(surahId) {
+      const sur = state.surah === surahId ? currentSurah() : null; const count = sur ? sur.count : 0; const urls = [];
+      for (let n = 1; n <= count; n++) for (const ref of audioRefs(surahId, n)) urls.push(everyAyahUrl(ref));
+      return [...new Set(urls)];
+    }
+    async function refreshDownloadButton() {
+      const btn = $("#downloadAudio"), del = $("#deleteAudio"); if (!btn) return;
+      if (!("caches" in window) || !state.loaded) { btn.hidden = true; del.hidden = true; return; }
+      if (state.downloading) return;
+      const surahId = state.surah, urls = surahAudioUrls(surahId); const cache = await caches.open(AUDIO_CACHE);
+      let have = 0; for (const u of urls) if (await cache.match(u)) have++;
+      if (surahId !== state.surah) return;
+      btn.hidden = false; btn.disabled = false;
+      if (urls.length && have === urls.length) { btn.textContent = `✓ تلاوة ${RECITERS[state.reciter].name} محفوظة لهذه السورة · تعمل دون اتصال`; btn.classList.add("done"); btn.disabled = true; del.hidden = false; }
+      else { btn.classList.remove("done"); del.hidden = have === 0; btn.textContent = have ? `⬇ إكمال تحميل التلاوة (${toArabic(have)} من ${toArabic(urls.length)})` : "⬇ تحميل تلاوة السورة للاستماع دون اتصال"; }
+    }
+    async function downloadSurahAudio() {
+      if (state.downloading || !state.loaded) return;
+      if (!navigator.onLine) { toast("يجب الاتصال بالإنترنت لتحميل التلاوة.", "error"); return; }
+      const btn = $("#downloadAudio"), surahId = state.surah, urls = surahAudioUrls(surahId), cache = await caches.open(AUDIO_CACHE);
+      state.downloading = true; btn.disabled = true; let done = 0, failed = 0;
+      for (const u of urls) {
+        if (!(await cache.match(u))) {
+          try { const res = await fetch(u, { mode: "cors" }); if (!res.ok) throw new Error(res.status); await cache.put(u, res); }
+          catch (e) { failed++; if (failed >= 3 && done === 0) break; }
+        }
+        done++; btn.textContent = `جارٍ التحميل… ${toArabic(done)} من ${toArabic(urls.length)}`;
+      }
+      state.downloading = false;
+      if (failed) toast(done === 0 || failed >= 3 && done <= failed ? "تعذر تحميل التلاوة من المصدر. تحقق من الإنترنت وحاول مرة أخرى." : `تم التحميل مع تعذر ${toArabic(failed)} آية؛ اضغط الزر مرة أخرى لإكمالها.`, "error", 6000);
+      else toast("تم حفظ تلاوة السورة. يمكنك الاستماع إليها الآن دون اتصال.", "success");
+      refreshDownloadButton();
+    }
+    async function deleteSurahAudio() {
+      const cache = await caches.open(AUDIO_CACHE); for (const u of surahAudioUrls(state.surah)) await cache.delete(u);
+      toast("تم حذف التلاوة المحفوظة لهذه السورة."); refreshDownloadButton();
+    }
+    document.addEventListener("click", (e) => {
+      if (e.target.closest("#downloadAudio")) downloadSurahAudio();
+      else if (e.target.closest("#deleteAudio")) deleteSurahAudio();
+    });
     function everyAyahUrl(ref) { return `${AUDIO_BASE}${RECITERS[state.reciter].folder}/${pad3(ref.s)}${pad3(ref.a)}.mp3`; }
     async function setAudioSource(url, token = state.playToken) {
       if (token !== state.playToken || !state.active) return;
-      audio.playbackRate = state.speed; audio.defaultPlaybackRate = state.speed; audio.src = url; audio.load();
+      let src = url;
+      try {
+        if ("caches" in window) {
+          const hit = await (await caches.open(AUDIO_CACHE)).match(url);
+          if (hit) { const blob = await hit.blob(); if (state.blobUrl) URL.revokeObjectURL(state.blobUrl); state.blobUrl = URL.createObjectURL(blob); src = state.blobUrl; }
+        }
+      } catch (e) {}
+      if (token !== state.playToken || !state.active) return;
+      audio.playbackRate = state.speed; audio.defaultPlaybackRate = state.speed; audio.src = src; audio.load();
       try { await audio.play(); }
       catch (error) {
         if (error.name === "NotAllowedError") toast("المتصفح منع التشغيل التلقائي؛ اضغط زر التشغيل في الشريط السفلي.", "error", 6000);
