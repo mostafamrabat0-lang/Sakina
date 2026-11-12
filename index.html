@@ -1235,6 +1235,18 @@
     init();
   })();
   </script>
+<div id="apkBanner" hidden style="position:fixed;inset-inline:12px;bottom:150px;z-index:90;background:var(--primary);color:#fff;border-radius:16px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow);font-size:15px"><span style="flex:1">نسخة أندرويد متاحة: ثبّت سكينة كتطبيق على هاتفك</span><a href="sakina.apk" download style="background:#fff;color:var(--primary);border-radius:999px;padding:8px 14px;font-weight:700;text-decoration:none;white-space:nowrap">تحميل APK</a><button type="button" id="apkClose" aria-label="إغلاق" style="background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer">×</button></div>
+<script>
+  (function () {
+    try {
+      var isAndroid = /Android/i.test(navigator.userAgent);
+      var standalone = window.matchMedia("(display-mode: standalone)").matches || document.referrer.indexOf("android-app://") === 0;
+      var closed = false; try { closed = localStorage.getItem("apkBannerClosed") === "1"; } catch (e) {}
+      if (isAndroid && !standalone && !closed) document.getElementById("apkBanner").hidden = false;
+      document.getElementById("apkClose").addEventListener("click", function () { document.getElementById("apkBanner").hidden = true; try { localStorage.setItem("apkBannerClosed", "1"); } catch (e) {} });
+    } catch (e) {}
+  })();
+</script>
 <script>
   if ("serviceWorker" in navigator && location.protocol === "https:") {
     window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
