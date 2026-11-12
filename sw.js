@@ -1,6 +1,7 @@
 // سكينة — يحفظ التطبيق والخط ونص المصحف في الهاتف ليعمل بدون إنترنت
-const VERSION = "sakina-v1";
-const SHELL = ["./", "./index.html", "./manifest.json", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
+const VERSION = "sakina-v2";
+const SHELL = ["./", "./index.html", "./manifest.json"];
+const ICONS = ["./IMG_2261.png", "./IMG_2262.png", "./IMG_2263.png"];
 const DATA = [
   "https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@main/warsh/font/warsh.10.woff2",
   "https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@main/warsh/data/warshData_v10.json"
@@ -10,6 +11,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(VERSION);
     await cache.addAll(SHELL);
+    await Promise.all(ICONS.map((url) => cache.add(url).catch(() => {})));
     await Promise.all(DATA.map((url) => cache.add(new Request(url, { mode: "cors" })).catch(() => {})));
     self.skipWaiting();
   })());
